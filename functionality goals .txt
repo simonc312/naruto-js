@@ -1,0 +1,18 @@
+Functionality Goals of Naruto Minigame
+
+1. 2 player mode on the same computer. kinda...
+2. Level and score system with increasing difficulty using CSS3 and html5 only use javascript for adding the score.   Sorta (score part)
+3. Temporary and permanent power up items after defeating levels or catching flying items 
+4. A different variety of attacks and skills for both Naruto and enemies 
+5. Different Background scenery for each level. Blend such that after a level is completed the background fades to new scene. 
+6. Dialogue at beginning of each level, before and after each boss fight etc. Different dialogue if two player mode. 
+7. Write up a storyline. 
+8. Enable a way to store high scores when game is over. 
+9. Enable way to gain extra lives for continued play yes!
+10. Include a health bar and chakra bar.   Yes!
+11. Include different obstacles that aren't enemies in later levels. 
+12. Include a progression map during each level from beginning to the boss fight. 
+13. Give naruto different modes. 
+14. Make the animations for enemy death, naruto attack, etc work out. try gif even.. sorta
+
+15. add coins and hearts to heal - yes 
