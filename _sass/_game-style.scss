@@ -1,0 +1,334 @@
+$start-button-background-url: '/assets/sprites/NarutoShippudenLogo.png';
+
+
+@font-face{
+font-family: SilkScreen;
+src: url('/assets/fonts/slkscr.ttf');
+}
+
+@font-face{
+font-family: NarutoStyle;
+src: url('/assets/fonts/njnaruto.ttf');
+}
+
+p, li{
+text-align: center;
+	font-family: SilkScreen;
+}
+p{
+font-size: 24px;}
+
+ul li {
+	list-style: none;
+	font-size: 18px;
+	margin-left: 5%;
+}
+ul li:hover {
+	cursor: pointer;
+	background-color: #f2f2f2;
+	color: #000; 
+}
+
+.shadow{
+    -moz-box-shadow: 3px 3px 4px;
+    -webkit-box-shadow: 3px 3px 4px;
+    box-shadow: 3px 3px 4px; /* For IE 8 */
+    -ms-filter: "progid:DXImageTransform.Microsoft.Shadow(Strength=4, Direction=135, Color='black')"; /* For IE 5.5 - 7 */
+    filter: progid:DXImageTransform.Microsoft.Shadow(Strength = 4, Direction = 135, Color = 'black');
+}
+
+.blue{
+color: blue;
+}
+
+.red{
+color: red;}
+
+#playground{
+	width: 1000px; height: 500px;
+	margin-left: auto;
+	margin-right: auto;	
+	}
+	
+#welcomeScreen{
+	width: inherit; height: inherit;
+	margin-left: inherit;
+	margin-right: inherit; background-color: orange;
+	padding: 4%;
+	}
+#loadingBar{
+	position: relative; left: 100px; height: 15px; width: 0px;
+	}
+	
+#avatar{
+position: relative;
+margin: 1%;}	
+	
+#meter { 
+	display: in-line;
+	width: 125px; /* Can be anything */
+	height: 14px;  /* Can be anything */
+	position: relative;
+	margin: 1%;
+	background: #555;
+	-moz-border-radius: 25px;
+	-webkit-border-radius: 25px;
+	border-radius: 25px;
+	padding: 10px;
+	-webkit-box-shadow: inset 0 -1px 1px rgba(255,255,255,0.3);
+	-moz-box-shadow   : inset 0 -1px 1px rgba(255,255,255,0.3);
+	box-shadow        : inset 0 -1px 1px rgba(255,255,255,0.3);
+}
+
+span[id^="green"]{
+background-color: rgb(43,194,83);
+	background-image: -webkit-gradient(
+	  linear,
+	  left bottom,
+	  left top,
+	  color-stop(0, rgb(43,194,83)),
+	  color-stop(1, rgb(84,240,84))
+	 );
+	background-image: -webkit-linear-gradient(
+	  center bottom,
+	  rgb(43,194,83) 37%,
+	  rgb(84,240,84) 69%
+	 );
+	background-image: -moz-linear-gradient(
+	  center bottom,
+	  rgb(43,194,83) 37%,
+	  rgb(84,240,84) 69%
+	 );
+	background-image: -ms-linear-gradient(
+	  center bottom,
+	  rgb(43,194,83) 37%,
+	  rgb(84,240,84) 69%
+	 );
+	background-image: -o-linear-gradient(
+	  center bottom,
+	  rgb(43,194,83) 37%,
+	  rgb(84,240,84) 69%
+	 );
+	
+}
+
+span[id^="orange"]{
+	background-color: #f1a165;
+	background-image: -webkit-gradient(linear,left top,left bottom,color-stop(0, #f1a165),color-stop(1, #f36d0a));
+	background-image: -webkit-linear-gradient(top, #f1a165, #f36d0a); 
+        background-image: -moz-linear-gradient(top, #f1a165, #f36d0a);
+        background-image: -ms-linear-gradient(top, #f1a165, #f36d0a);
+        background-image: -o-linear-gradient(top, #f1a165, #f36d0a);
+}
+
+span[id^="red"] {
+	background-color: #f0a3a3;
+	background-image: -webkit-gradient(linear,left top,left bottom,color-stop(0, #f0a3a3),color-stop(1, #f42323));
+	background-image: -webkit-linear-gradient(top, #f0a3a3, #f42323);
+        background-image: -moz-linear-gradient(top, #f0a3a3, #f42323);
+        background-image: -ms-linear-gradient(top, #f0a3a3, #f42323);
+        background-image: -o-linear-gradient(top, #f0a3a3, #f42323);
+}
+
+span[id^="blue"]{
+background-color: #a3a7f0;
+	background-image: -webkit-gradient(linear,left top,left bottom,color-stop(0, #a3a7f0),color-stop(1, #1e19ff));
+	background-image: -webkit-linear-gradient(top, #a3a7f0, #1e19ff);
+        background-image: -moz-linear-gradient(top, #a3a7f0, #1e19ff);
+        background-image: -ms-linear-gradient(top, #a3a7f0, #1e19ff);
+        background-image: -o-linear-gradient(top, #a3a7f0, #1e19ff);
+}
+
+	
+#meter span {
+	display: block;
+	height: 40%;
+	padding: 1%;
+	   -webkit-border-top-right-radius: 8px;
+	-webkit-border-bottom-right-radius: 8px;
+	       -moz-border-radius-topright: 8px;
+	    -moz-border-radius-bottomright: 8px;
+	           border-top-right-radius: 8px;
+	        border-bottom-right-radius: 8px;
+	    -webkit-border-top-left-radius: 20px;
+	 -webkit-border-bottom-left-radius: 20px;
+	        -moz-border-radius-topleft: 20px;
+	     -moz-border-radius-bottomleft: 20px;
+	            border-top-left-radius: 20px;
+	         border-bottom-left-radius: 20px;	
+			 -webkit-box-shadow: 
+	  inset 0 2px 9px  rgba(255,255,255,0.3),
+	  inset 0 -2px 6px rgba(0,0,0,0.4);
+	-moz-box-shadow: 
+	  inset 0 2px 9px  rgba(255,255,255,0.3),
+	  inset 0 -2px 6px rgba(0,0,0,0.4);
+	position: relative;
+	overflow: hidden;
+}	
+	
+	
+@-webkit-keyframes resize {
+  0% {visibility: hidden;
+  }
+  50% {visibility: visible;
+  }
+  100% {visibility: hidden;
+  }
+}	
+@-moz-keyframes resize {
+  0% {  }
+  50% {
+  }
+  100% {
+  }
+}	
+
+@-o-keyframes resize {
+  0% {visibility: hidden}
+  50% {visibility: visible;
+  }
+  100% {visibility: hidden;
+  }
+}
+	
+#startbutton{
+	text-align: center;
+	padding-top: auto;
+	padding-bottom: auto;
+	font-family: NarutoStyle;
+	font-size: 30px;
+	color: white;
+	text-shadow: black 0.1em 0.1em 0.2em;
+	animation: name duration timing-function delay iteration-count direction;
+	-webkit-animation: resize 1s ease 0 infinite alternate;
+	-moz-animation: resize 1s ease 0 infinite alternate;
+	-o-animation: resize 1s ease 0 infinite alternate;
+	width: inherit; height: inherit;
+	background-image: url($start-button-background-url);
+	background-size: 100% auto;
+	background-repeat: no-repeat;
+	background-position: center;
+	
+}
+
+	
+@keyframes fadeIn
+{
+0% {opacity: 0;
+}
+50% {opacity: 1; transform: rotate(45deg);
+-webkit-transform: rotate(45deg); /* Safari and Chrome */
+-o-transform: rotate(45deg); /* Opera */
+-moz-transform: rotate(45deg); /* Firefox */
+}
+100%{}
+}	
+
+@keyframes fadeOut
+{
+0% {left: 500px;}
+50% {opacity: 1;
+left: 800px;}
+100%{opacity: 0;
+left: 1000px;}
+}
+
+@-webkit-keyframes fadeIn
+{
+0% {opacity: 0;
+width: 5%;
+height: 10%;
+}
+50% {opacity: 0.5; 
+
+transform: rotate(45deg);
+-webkit-transform: rotate(45deg); /* Safari and Chrome */
+}
+100%{opacity: 1;
+}	
+}
+
+@-webkit-keyframes fadeOut
+{
+0% {left: 500px;}
+50% {opacity: 1;
+left: 800px;}
+100%{opacity: 0;
+left: 1000px;}
+}
+
+#boxes{
+width: 180px;
+height: 180px;
+overflow: hidden;
+display: block;
+float: left;
+transform: rotate(-45deg);
+-webkit-transform: rotate(-45deg); /* Safari and Chrome */
+-o-transform: rotate(-45deg); /* Opera */
+-moz-transform: rotate(-45deg); /* Firefox */
+background-color: white;
+margin-top: 10%;
+transition: all slow ease-in-out;
+}
+
+#box{
+width: 200px;
+height: 200px;
+overflow: hidden;
+}
+
+#boxes > *{
+transform: rotate(45deg);
+-webkit-transform: rotate(45deg); /* Safari and Chrome */
+-o-transform: rotate(45deg); /* Opera */
+-moz-transform: rotate(45deg); /* Firefox */
+}
+
+
+	
+#boxes > img{
+width:80%; /* you can use % */
+    height: auto; 
+	transition: all 0.4s ease-in-out;
+	}
+
+#boxes.mini > img{
+width: 100%;}	
+	
+#boxes > img:hover{
+padding-right: 10%;
+padding-left: 10%;
+padding-bottom: 10%;
+}	
+
+#box .name{
+width: 250px;
+height: 250px;
+opacity: 0;
+background-color:black;
+transition: all 0.4s ease-in-out;
+}
+
+#box .name:hover{
+opacity: 1;
+}
+
+#boxes.mini{
+width: 60px;
+height: 60px;
+margin: 0%;
+}
+
+#boxes.mini.bottom{
+margin-top: 6%;
+}
+
+#boxes.fillspace.clear{
+clear: left;
+}
+
+#boxes.fillSpace{
+margin-top: 8%;
+background-color: orange;
+}	

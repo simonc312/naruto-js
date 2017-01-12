@@ -1,1 +1,18 @@
-theme: jekyll-theme-minimal
+# Welcome to Jekyll!
+#
+# This config file is meant for settings that affect your whole blog, values
+# which you are expected to set up once and rarely need to edit after that.
+# For technical reasons, this file is *NOT* reloaded automatically when you use
+# 'jekyll serve'. If you change this file, please restart the server process.
+
+# Site settings
+title: naruto.js
+email: simon.c312@gmail.com
+description: reviving an old jquery naruto sprite based game made in 2012. 
+baseurl: "" # the subpath of your site, e.g. /blog
+url: "http://simonc312.github.io" # the base hostname & protocol for your site
+twitter_username: simonc312
+github_username:  simonc312
+
+# Build settings
+markdown: kramdown
