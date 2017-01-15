@@ -2,7 +2,8 @@
 var PLAYGROUND_WIDTH    = 1000;
 var PLAYGROUND_HEIGHT    = 500;
 var REFRESH_RATE        = 30;
-var SPRITE_PATH = "assets/sprites/";
+var BASE_PATH = "/naruto-js";
+var SPRITE_PATH = BASE_PATH + "/assets/sprites/";
 
 //Constants for the gameplay
 var stageSpeed = 3;

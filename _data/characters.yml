@@ -1,0 +1,34 @@
+
+teamA:
+  - fileName: narutoPlayable.png
+    id: naruto
+    class: choose left
+
+  - fileName: jirayaAvatar1.png
+    id: jiraya
+    class: mini left
+
+  - fileName: sakuraAvatar1.png
+    id: sakura
+    class: mini bottom left
+
+  - fileName: kakashiAvatar1.png
+    id: kakashi
+    class: mini left
+
+teamB:
+  - fileName: orochimaruAvatar1.png
+    id: orochimaru
+    class: mini right
+
+  - fileName: itachiAvatar1.png
+    id: itachi
+    class: mini bottom right
+
+  - fileName: tobiAvatar1.png
+    id: tobi
+    class: mini right
+
+  - fileName: sasukePlayable.png
+    id: saskue
+    class: choose right

@@ -1,0 +1,14 @@
+- title: narutoOpening1.mp3 
+  type: audio/mp3
+  id: startSound
+  loop: false
+
+- title: narutoFightingSpirit.mp3 
+  type: audio/mp3
+  id: welcomeMusic
+  loop: true
+
+- title: narutoOpening1.mp3 
+  type: audio/mp3
+  id: fightingMusic
+  loop: true

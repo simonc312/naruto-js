@@ -1,39 +1,27 @@
 <div id="playground">
     <div id="welcomeScreen">
-		<audio id="startSound"> <source src="/assets/music/narutoOpening1.mp3" type="audio/mp3"/> </audio>
-		<audio id="fightingMusic" loop> <source src="/assets/music/narutoOpening1.mp3" type="audio/mp3"/> </audio>
-		<audio id="welcomeMusic" loop> <source src="/assets/music/narutoFightingSpirit.mp3" type="audio/mp3"/> </audio>
-        <div id="boxes" class="choose left avatar">
-				<img id="naruto" src="/assets/sprites/narutoPlayable.png">
-		</div>
-		<div id="boxes" class="mini left avatar">
-			<img id="jiraya" src="/assets/sprites/jirayaAvatar1.png">
-		</div>
-		<div id="boxes" class="mini bottom left avatar">
-			<img id="sakura" src="/assets/sprites/sakuraAvatar1.png">
-		</div>
-		<div id="boxes" class="mini left avatar">
-			<img id="kakashi" src="/assets/sprites/kakashiAvatar1.png">
-		</div>
+      {% for song in site.data.music %}
+		    <audio id="{{ song.id }}"> <source src="{{ site.baseurl }}/assets/music/{{ song.title }}" type="{{ song.type }}"/> </audio>
+      {% endfor %}
+
+
+      {% for character in site.data.characters.teamA %}
+        <div id="boxes" class="{{ character.class }} avatar">
+			     <img id="{{ character.id }}" src="{{ site.baseurl }}/assets/sprites/{{ character.fileName }}">
+		    </div>
+      {% endfor %}
+
 		<div id="boxes">
-				<div id="startbutton">Choose Mode</div>
+			<div id="startbutton">Choose Mode</div>
 		</div>
+
+    {% for character in site.data.characters.teamB %}
+        <div id="boxes" class="{{ character.class }} avatar">
+            <img id="{{ character.id }}" src="{{ site.baseurl }}/assets/sprites/{{ character.fileName }}">
+        </div>
+      {% endfor %}
 		
-		<div id="boxes" class="mini right avatar">
-			<img id="tobi" src="/assets/sprites/tobiAvatar1.png">
-		</div>
-		<div id="boxes" class="mini bottom right avatar">
-			<img id="itachi" src="/assets/sprites/itachiAvatar1.png">
-		</div>
-		<div id="boxes" class="mini right avatar">
-			<img id="orochimaru" src="/assets/sprites/orochimaruAvatar1.png">
-		</div>
-		
-		<div id="boxes" class="choose right avatar">
-			<img id="sasuke" src="/assets/sprites/sasukePlayable.png">
-		</div>
-		
-		<div id="boxes" class="fillSpace clear"></div>
+		<div id="boxes" class="fillSpace clear"/></div>
 		<div id="boxes" class="mini left first">
 			<p>1</p></div>
 		<div id="boxes" class="mini bottom left second">
@@ -53,9 +41,9 @@
 				<p>3</p></div>
     </div>
 
-    <script type="text/javascript" src="/js/jquery-1.4.2.js"></script>
-    <script type="text/javascript" src="/js/jquery.gamequery-0.7.0.js"></script>
-    <script type="text/javascript" src="/js/gameScript.js"></script>
+    <script type="text/javascript" src="{{ site.baseurl }}/js/jquery-1.4.2.js"></script>
+    <script type="text/javascript" src="{{ site.baseurl }}/js/jquery.gamequery-0.7.0.js"></script>
+    <script type="text/javascript" src="{{ site.baseurl }}/js/gameScript.js"></script>
 </div>
 
 

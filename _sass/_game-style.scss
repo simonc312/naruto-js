@@ -1,32 +1,35 @@
-$start-button-background-url: '/assets/sprites/NarutoShippudenLogo.png';
+$start-button-background-url: $base-url + '/assets/sprites/NarutoShippudenLogo.png';
 
 
 @font-face{
 font-family: SilkScreen;
-src: url('/assets/fonts/slkscr.ttf');
+src: url($base-url + '/assets/fonts/slkscr.ttf');
 }
 
 @font-face{
 font-family: NarutoStyle;
-src: url('/assets/fonts/njnaruto.ttf');
+src: url($base-url + '/assets/fonts/njnaruto.ttf');
 }
 
 p, li{
-text-align: center;
 	font-family: SilkScreen;
 }
+
 p{
 font-size: 24px;}
 
-ul li {
-	list-style: none;
-	font-size: 18px;
-	margin-left: 5%;
-}
-ul li:hover {
-	cursor: pointer;
-	background-color: #f2f2f2;
-	color: #000; 
+ul {
+  li {
+  list-style: none;
+  font-size: 18px;
+  margin-left: 5%;
+  }
+
+  li:hover {
+  cursor: pointer;
+  background-color: #f2f2f2;
+  color: #000; 
+  }
 }
 
 .shadow{
@@ -270,6 +273,10 @@ transform: rotate(-45deg);
 background-color: white;
 margin-top: 10%;
 transition: all slow ease-in-out;
+
+  p {
+    text-align: center;
+  }
 }
 
 #box{
@@ -288,10 +295,10 @@ transform: rotate(45deg);
 
 	
 #boxes > img{
-width:80%; /* you can use % */
-    height: auto; 
+  width:80%; /* you can use % */
+  height: auto; 
 	transition: all 0.4s ease-in-out;
-	}
+}
 
 #boxes.mini > img{
 width: 100%;}	
