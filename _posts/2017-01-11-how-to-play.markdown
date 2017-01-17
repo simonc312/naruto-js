@@ -24,7 +24,7 @@ Hope you enjoy this short game.
   D - right
 
 + ![charge icon]({{ site.baseurl }}/assets/sprites/narutoCharge.png) 
-  J (hold) - charge chakra 
+  L (hold) - charge chakra 
 
 + K - throw kunai
   ![kunai icon]({{ site.baseurl }}/assets/sprites/kunai.png)

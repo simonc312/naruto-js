@@ -1,3 +1,6 @@
+//require("babel-polyfill");
+let strings = require("./strings.js");
+
 // Global constants:
 var PLAYGROUND_WIDTH    = 1000;
 var PLAYGROUND_HEIGHT    = 500;
@@ -158,7 +161,7 @@ else if(place == 2){
 
 else{
 	replaceOrAddAvatar(div+".third",avatarSrc,avatarId,1);
-	$("#startbutton").text("Press Enter Start Game!");
+	$("#startbutton").text(strings.button.startGame);
 	gameReady = true;
 }
 replaceOrAddAvatar(choose,playableSrc,avatarId,1);

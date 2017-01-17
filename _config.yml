@@ -16,3 +16,15 @@ github_username:  simonc312
 
 # Build settings
 markdown: kramdown
+
+exclude: [
+  'src',
+  'node_modules',
+  'gulp',
+  'package.json',
+  'gulpfile.js',
+  '.babelrc',
+  'Gemfile',
+  'Gemfile.lock'
+]
+
