@@ -1,4 +1,5 @@
 $start-button-background-url: $base-url + '/assets/sprites/NarutoShippudenLogo.png';
+$primaryFont : SilkScreen;
 
 
 @font-face{
@@ -12,7 +13,7 @@ src: url($base-url + '/assets/fonts/njnaruto.ttf');
 }
 
 p, li{
-	font-family: SilkScreen;
+	font-family: $primaryFont;
 }
 
 p{
@@ -338,4 +339,43 @@ clear: left;
 #boxes.fillSpace{
 margin-top: 8%;
 background-color: orange;
-}	
+}
+
+.level {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  font-family: $primaryFont;
+  font-size: 75px;
+  opacity: 0;
+}
+
+.score {
+  font-family: $primaryFont;
+  font-size: 25px;
+}
+
+.dialog {
+    width: 40%;
+    padding: 16px;
+    margin: auto;
+    border: 1px solid #888;
+    border-radius: 4px;
+    text-align: center;
+
+    .button {
+        width: 48%;
+        padding: 16px;
+        margin-top: 16px;
+        margin-left: 2px;
+        margin-right: 2px;
+        font-size: large;
+        font-family: SilkScreen;
+        transition: all .2s ease-in-out;
+    }
+
+    .button:hover {
+      background-color: #e5e5e5;
+      cursor: pointer;
+    }
+}

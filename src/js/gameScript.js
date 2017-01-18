@@ -1,10 +1,12 @@
 //require("babel-polyfill");
 let strings = require("./strings.js");
+let gameOverDialog = require("./gameover.js");
 
 // Global constants:
 var PLAYGROUND_WIDTH    = 1000;
 var PLAYGROUND_HEIGHT    = 500;
 var REFRESH_RATE        = 30;
+var PLAYGROUND_CALLBACK_RATE = 1000; //milliseconds
 var BASE_PATH = "/naruto-js";
 var SPRITE_PATH = BASE_PATH + "/assets/sprites/";
 
@@ -83,7 +85,7 @@ var ramenHeight=27;
 var coinValue = 10;  
 var heartHealth = 25;
 var scrollChakra = 25;
-var playerLives = 3;
+var playerLives = 1;
 //record the time when first holding down the attack button. Used to see if held long enough for a death Blade 
 var timeHeld = 0;
 var chargeSfx = 1; //will hold the charge sfx object to remove after key up on charging 
@@ -161,7 +163,7 @@ else if(place == 2){
 
 else{
 	replaceOrAddAvatar(div+".third",avatarSrc,avatarId,1);
-	$("#startbutton").text(strings.button.startGame);
+	$(strings.button.id).text(strings.button.startGame);
 	gameReady = true;
 }
 replaceOrAddAvatar(choose,playableSrc,avatarId,1);
@@ -208,14 +210,14 @@ if(side == ".left"){
 }
 	  
 function enableSingleSelection(){
-$("#1player").fadeOut("slow");
-$("#2players").fadeOut("slow");
-$("#startbutton").text("Choose Team");
+$(strings.mode.onePlayer.id).fadeOut("slow");
+$(strings.mode.twoPlayers.id).fadeOut("slow");
+$(strings.button.id).text(strings.button.chooseTeam);
 $(".choose").each(function(){
 	$(this).css('cursor','pointer');
 	$(this).addClass('shadow');
 	$(this).click(function(){
-		$("#startbutton").text("Choose Order");
+		$(strings.button.id).text(strings.button.chooseOrder);
 		team = new Team();
 		if($(this).hasClass('left')){
 			hideSide(RIGHT);
@@ -256,21 +258,25 @@ enableVersusSelection();
 }
 	  
 function selectModeMouseClickListener(){
-	$("#1player").click(function(){onePlayerMode();});
-	$("#2player").click(function(){twoPlayerMode();});
+	$(strings.mode.onePlayer.id).click(function(){onePlayerMode();});
+	$(strings.mode.twoPlayers.id).click(function(){twoPlayerMode();});
 }	  
 	  
 function updateScore(score){
-$(".score").text((parseInt($(".score").text()) + score).toString());
+$(".score").text((getScore() + score).toString());
 $(".score").animate({fontSize: '50px'},"slow");
 $(".score").animate({fontSize: '25px'},"slow");
 }
 
-function animateLevel(level){
-//$(".level").text((parseInt($(".level").text()) + score).toString());
-$(".level").animate({fontSize: '80px', opacity: 1, left: '+=50'},2000);
-$(".level").animate({fontSize: '75px', opacity: 0, left: '-=50'},"fast");
-$//(".level").animate({fontSize: '25px'},"slow");
+function getScore() {
+  return parseInt($(".score").text());
+}
+
+function animateLevel(newLevel) {
+  let levelText = $(".level");
+  levelText.text("LEVEL " + newLevel.toString());
+  levelText.animate({fontSize: '80px', opacity: 1, left: '+=50'},2000);
+  levelText.animate({fontSize: '75px', opacity: 0, left: '-=50'},"fast");
 }	  
 
 function resetScore(){
@@ -449,8 +455,15 @@ function updateEnemies(){
 				if(this.enemy.damage($("#player")[0].player.shield)){
 					var addScore = 0;
 					if(this.enemy instanceof BossNinja){
+            let bossEnemy = this.enemy;
 						$(this).setAnimation(enemies[2]["damage"], animateEnemy(this.enemy.node,DEATH));
-						$(this).setAnimation(enemies[2]["explode"], function(node){$(node).remove();});
+						$(this).setAnimation(enemies[2]["explode"], 
+              function(node){
+                //console says undefined enemy
+                console.log("boss defeated");
+                bossEnemy.onDestroy();
+                $(node).remove();
+              });
 						$(this).w(enemyWidth);
 						addScore = BOSS_KILL_POINTS;
 						
@@ -522,7 +535,11 @@ function updateMissiles(){
 					updateScore(BOSS_KILL_POINTS);
 					var x = $(this).x();
 					var y = $(this).y();
-					$(this).setAnimation(enemies[2]["explode"], function(node){$(node).remove();});
+					$(this).setAnimation(enemies[2]["explode"], 
+            function(node){
+              this.enemy.onDestroy();
+              $(node).remove();
+            });
 					$(this).w(enemyWidth);
 					// reward with 1up icon
 						addLifeItem(x,y);
@@ -640,11 +657,15 @@ function updateMissiles(){
           playerHit = true;
 		  animateHealthBar();
         }
+
+    function shareToFacebook() {
+      console.log("share high score and chosen team and ranking to facebook");
+    }
 		
-			// Function to restart the game:
-        function restartgame(){
-          window.location.reload();
-        };
+		// Function to restart the game:
+    function restartgame(){
+      window.location.reload();
+    };
 
 
     // Animations declaration: 
@@ -846,10 +867,10 @@ function updateMissiles(){
 					initializeGame();
 					
 					$.playground().startGame(function(){
-					$("#welcomeMusic").animate({volume: 0}, "slow", function(){$("#welcomeMusic")[0].pause()});
-					$("#fightingMusic").animate({volume: 1}, "slow", function(){$("#fightingMusic")[0].play()});
+					$("#welcomeMusic").animate({volume: 0}, 3000, function(){$("#welcomeMusic")[0].pause()});
+					$("#fightingMusic").animate({volume: 1}, 3000, function(){$("#fightingMusic")[0].play()});
 					$("#welcomeScreen").fadeOut("slow");      
-					animateLevel();
+					animateLevel(1); //todo update level after each boss
 					});
 					}
 					break;
@@ -1086,6 +1107,9 @@ function updateMissiles(){
 				var newpos = parseInt(this.node.x()) + this.speedx;
 				this.node.x(newpos);
 			};
+      this.onDestroy = function() {
+        this.node.remove();
+      }
 			
 		};
 		
@@ -1137,13 +1161,14 @@ function updateMissiles(){
 		
 		//enemy type 3
 		//should include a chance of invincibility when tobi becomes see through 
-		function BossNinja(node){
+		function BossNinja(node, onDestroy){
 			this.collisionDamage = bossNinjaCollisionDamage;
 			this.node   = $(node);
 			this.shield = bossNinjaShieldHealth;
 			this.speedx = -1;
 			this.alignmentOffset = 2;
 			this.moveForward = true;
+      this.onDestroy = onDestroy;
         }
         BossNinja.prototype = new SmartNinja();
         BossNinja.prototype.updateX = function(){
@@ -1160,47 +1185,51 @@ function updateMissiles(){
 					this.moveForward = true;}
 			}
         }
+        BossNinja.prototype.onDestroy = function() {
+          Enemy.prototype.onDestroy.apply();
+          this.onDestroy();
+        }
 
 
     // Initialize the game:
 		
-		function addHealthBar(){
-		var span = document.createElement("span");
-		span.width = '0%';
-		span.className = 'health';
-		span.id = 'green';
-		$("#meter")[0].appendChild(span);
+		function addHealthBar() {
+  		var span = document.createElement("span");
+  		span.width = '0%';
+  		span.className = 'health';
+  		span.id = 'green';
+  		$("#meter")[0].appendChild(span);
 		}
 		
-		function addChakraBar(){
-		var span2 = document.createElement("span");
-		span2.width = '0%';
-		span2.className = 'chakra';
-		span2.id = 'blue';
-		$("#meter")[0].appendChild(span2);
+		function addChakraBar() {
+  		var span2 = document.createElement("span");
+  		span2.width = '0%';
+  		span2.className = 'chakra';
+  		span2.id = 'blue';
+  		$("#meter")[0].appendChild(span2);
 		}
 		
-		function addScoreText(){
-		var div = document.createElement("div");
-		div.className = "score";
-		$("#score")[0].appendChild(div);
-		var text = document.createTextNode("0");
-		$(".score")[0].appendChild(text);
-		$(".score").css({'font-family': 'SilkScreen', 'font-size': '25px'});
+		function addScoreText() {
+		  let div = document.createElement("div");
+  		div.className = "score";
+  		$("#score")[0].appendChild(div);
+  		var text = document.createTextNode("0");
+  		$(".score")[0].appendChild(text);
+  		//$(".score").css({'font-family': 'SilkScreen', 'font-size': '25px'});
 		}
 		
 		function addAvatar(){
-		$("#avatar").addSprite("playerAvatar", {animation: playerAvatar1,
-			width: avatarWidth, height: avatarHeight});
+		  $("#avatar").addSprite("playerAvatar", 
+        {animation: playerAvatar1,
+        width: avatarWidth, 
+        height: avatarHeight});
 		}
 		
-		function addLevelText(){
-		var level = document.createElement("div");
+		function addLevelText(initialLevel) {
+		let level = document.createElement("div");
 		level.className = "level";
 		$("#text")[0].appendChild(level);
-		$(".level")[0].appendChild(document.createTextNode("LEVEL 1"));
-		$(".level").css({'display': 'block', 'margin-left':'auto', 'margin-right':'auto','font-family': 'SilkScreen', 'font-size': '75px', 'opacity': '0'});
-
+		level.appendChild(document.createTextNode("LEVEL " + initialLevel));
 		}
 		
 		function setPlayerClass(){
@@ -1208,9 +1237,10 @@ function updateMissiles(){
 		}
 		
 		function startMusic(){
-		$("#welcomeMusic")[0].volume = 0;
-		$("#welcomeMusic")[0].play();
-		$("#welcomeMusic").animate({volume: 1}, "slow");
+      let welcomeMusic = $("#welcomeMusic");
+      welcomeMusic[0].volume = 0;
+		  welcomeMusic[0].play();
+		  welcomeMusic.animate({volume: 1.0}, 3000);
 		}
 		
 		
@@ -1226,12 +1256,10 @@ function updateMissiles(){
 		.addGroup("items", {width: PLAYGROUND_WIDTH, height: PLAYGROUND_HEIGHT}).end()
 		.addGroup ("player", {posx : PLAYGROUND_WIDTH/3, posy : PLAYGROUND_HEIGHT/2,
             width : playerWidth, height : playerHeight})
-			.addSprite("cloud",{animation: cloudAnimation, posx: 0,
-						posy: 0, width: 81, height: 73})
-            .addSprite ("playerBody",{animation : playerAnimation["idle"],
-                posx : 0, posy : 0, width : playerWidth, height : playerHeight}).end()
+			.addSprite("cloud",{animation: cloudAnimation, posx: 0, posy: 0, width: 81, height: 73})
+      .addSprite ("playerBody",{animation : playerAnimation["idle"], posx : 0, posy : 0, width : playerWidth, height : playerHeight}).end()
 		.addGroup("playerMissileLayer",{width: PLAYGROUND_WIDTH, height: PLAYGROUND_HEIGHT}).end()
-        .addGroup("enemiesMissileLayer",{width: PLAYGROUND_WIDTH, height: PLAYGROUND_HEIGHT}).end()
+    .addGroup("enemiesMissileLayer",{width: PLAYGROUND_WIDTH, height: PLAYGROUND_HEIGHT}).end()
 		.addGroup("avatar",{posy: PLAYGROUND_HEIGHT - avatarHeight -10, width: avatarWidth, height: avatarHeight}).end()
 		.addGroup("meter",{posx: avatarWidth, posy: PLAYGROUND_HEIGHT - 4*meterHeight, width: meterWidth, height: meterHeight}).end()
 		.addGroup("score",{posx: scoreWidth, posy: scoreHeight, width: scoreWidth, height: scoreHeight}).end()
@@ -1247,7 +1275,7 @@ function updateMissiles(){
 		addHealthBar();
 		addChakraBar();
 		addScoreText();
-		addLevelText();
+		addLevelText(1);
 		addAvatar();
 		setPlayerClass();
 		startMusic();
@@ -1331,12 +1359,15 @@ function updateMissiles(){
 	
 	
 	//This function manage the creation of the enemies and items
-        $.playground().registerCallback(function(){
-			var rand = Math.random();
-          if(!bossMode && !gameOver){
-			  
-            if(rand < 0.5){
-              var name = "enemy1_"+Math.ceil(Math.random()*1000);
+  $.playground().registerCallback(function(){
+    if (gameOver || bossMode) {
+      return;
+    }
+
+		var rand = Math.random();
+    
+    if (rand < 0.5) {
+        var name = "enemy1_"+Math.ceil(Math.random()*1000);
 			  var itemName = "item1_"+Math.ceil(Math.random()*1000);
 			  $("#items").addSprite(itemName, {animation: item["coin"],
 			  posx: PLAYGROUND_WIDTH-50, posy: Math.random()*PLAYGROUND_HEIGHT,
@@ -1346,9 +1377,9 @@ function updateMissiles(){
               $("#actors").addSprite(name, {animation: enemies[0]["idle"], 
                   posx: PLAYGROUND_WIDTH-50, posy: Math.random()*PLAYGROUND_HEIGHT,
                   width: enemyWidth, height: enemyHeight});
-              $("#"+name).addClass("enemy");
-              $("#"+name)[0].enemy = new Ninja($("#"+name));
-            } else if (rand >= 0.5 & rand < 0.7){
+        $("#"+name).addClass("enemy");
+        $("#"+name)[0].enemy = new Ninja($("#"+name));
+    } else if (rand >= 0.5 & rand < 0.7){
 				 var itemName = "item1_"+Math.ceil(Math.random()*1000);
 			  $("#items").addSprite(itemName, {animation: item["heart"],
 			  posx: PLAYGROUND_WIDTH-50, posy: Math.random()*PLAYGROUND_HEIGHT,
@@ -1356,56 +1387,48 @@ function updateMissiles(){
 			  $("#"+itemName).addClass("items");
 			  $("#"+itemName)[0].items = new Item($("#"+itemName),HEART_TYPE,heartHealth,HEART_SPEEDX);
 			  
-              var name = "enemy1_"+Math.ceil(Math.random()*1000);
-              $("#actors").addSprite(name, {animation: enemies[1]["idle"],
-                  posx: PLAYGROUND_WIDTH-70, posy: Math.random()*PLAYGROUND_HEIGHT,
-                  width: enemyWidth, height: enemyHeight});
-              $("#"+name).addClass("enemy");
-              $("#"+name)[0].enemy = new SmartNinja($("#"+name));
-            }
-			
-			else if(rand > 0.7 & rand < 0.95){
-			
-			var itemName = "item1_"+Math.ceil(Math.random()*1000);
-			  $("#items").addSprite(itemName, {animation: item["chakraScroll"],
-			  posx: PLAYGROUND_WIDTH-50, posy: Math.random()*PLAYGROUND_HEIGHT,
-			  width: scrollWidth, height: scrollHeight});
-			  $("#"+itemName).addClass("items");
-			  $("#"+itemName)[0].items = new Item($("#"+itemName),SCROLL_TYPE,scrollChakra,HEART_SPEEDX);
-			}
+        var name = "enemy1_"+Math.ceil(Math.random()*1000);
+        $("#actors").addSprite(name, {animation: enemies[1]["idle"],
+            posx: PLAYGROUND_WIDTH-70, posy: Math.random()*PLAYGROUND_HEIGHT,
+            width: enemyWidth, height: enemyHeight});
+        $("#"+name).addClass("enemy");
+        $("#"+name)[0].enemy = new SmartNinja($("#"+name));
+    } else if(rand > 0.7 & rand < 0.95){
 	
-			else if(rand >= 0.95){
-              bossMode = true;
-              bossName = "enemy1_"+Math.ceil(Math.random()*1000);
-              $("#actors").addSprite(bossName, {animation: enemies[2]["idle"],
-                  posx: PLAYGROUND_WIDTH-80, posy: Math.random()*PLAYGROUND_HEIGHT,
-                  width: enemyWidth, height: enemyHeight});
-              $("#"+bossName).addClass("enemy");
-              $("#"+bossName)[0].enemy = new BossNinja($("#"+bossName));
-            }
-			
-          } else {
-            if($("#"+bossName).length == 0){
-              bossMode = false;
-            }
-          }
+		   var itemName = "item1_"+Math.ceil(Math.random()*1000);
+		   $("#items").addSprite(itemName, {animation: item["chakraScroll"],
+		   posx: PLAYGROUND_WIDTH-50, posy: Math.random()*PLAYGROUND_HEIGHT,
+		   width: scrollWidth, height: scrollHeight});
+		   $("#"+itemName).addClass("items");
+		   $("#"+itemName)[0].items = new Item($("#"+itemName),SCROLL_TYPE,scrollChakra,HEART_SPEEDX);
+    }
+
+		else if(rand >= 0.95){
+      bossMode = true;
+      const bossName = "enemy1_"+Math.ceil(Math.random()*1000);
+      $("#actors").addSprite(bossName, {animation: enemies[2]["idle"],
+          posx: PLAYGROUND_WIDTH-80, posy: Math.random()*PLAYGROUND_HEIGHT,
+          width: enemyWidth, height: enemyHeight});
+      $("#"+bossName).addClass("enemy");
+      $("#"+bossName)[0].enemy = new BossNinja($("#"+bossName), 
+                                              () => {console.log("bossMode ended"); 
+                                                      bossMode = false;});
+    }
+    
           
-        }, 1000); //once per seconds is enough for this 
-		
-		
-		
-		
+    }, PLAYGROUND_CALLBACK_RATE); 
 		
 		
 	//This callback contains most of the enemy logic	
 		$.playground().registerCallback(function(){
-          if(!gameOver){
+      if (gameOver) {
+        return; 
+      }
 			updateItems();
-			 updateMissiles();
-            //Update the movement of the enemies
-			updateEnemies();
-          }
-        }, REFRESH_RATE);
+			updateMissiles();
+      //Update the movement of the enemies
+		  updateEnemies();
+    }, REFRESH_RATE);
 				
 				
 		// this is the function that control most of the game logic 
@@ -1448,18 +1471,20 @@ function updateMissiles(){
               var posx = parseInt($("#player").x())-PLAYER_SPEED;
               if(posy > PLAYGROUND_HEIGHT){
                 //Does the player did get out of the screen?
-                if($("#player")[0].player.respawn()){
+                if ($("#player")[0].player.respawn()) {
                   gameOver = true;
-                  $("#playground").append('<div style="position: absolute; ... >');
-                  $("#restartbutton").click(restartgame());
-                  $("#actors,#playerMissileLayer,#enemiesMissileLayer, #meter, #avatar").fadeTo(1000,0);
-                  $("#background").fadeTo(5000,0);
+                  let rootContainer = "#playground";
+                  $(rootContainer).append('<div style="position: absolute; ... >');
+                  $("#actors,#playerMissileLayer,#enemiesMissileLayer, #meter, #avatar, .score, .items, .level").fadeTo(1000,0);
+                  $("#background").fadeTo(5000,0, () => $(rootContainer).clearAll(true));
+                  
+                  gameOverDialog.show(rootContainer, getScore(), shareToFacebook, restartgame);
                 } else {
                   $("#explosion").remove();
                   $("#player").children().show();
                   $("#player").y(PLAYGROUND_HEIGHT / 2);
                   $("#player").x(PLAYGROUND_WIDTH / 3);
-				  resetBarsAndAvatar();
+				          resetBarsAndAvatar();
                   playerHit = false;
                 }
               } else {
