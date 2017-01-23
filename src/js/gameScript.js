@@ -1,6 +1,7 @@
 //require("babel-polyfill");
 let strings = require("./strings.js");
 let gameOverDialog = require("./gameover.js");
+let model = require("./model.js");
 
 // Global constants:
 var PLAYGROUND_WIDTH    = 1000;
@@ -36,7 +37,7 @@ var bossNinjaCollisionDamage = 100;
 
 var NINJA_KILL_POINTS = 10;
 var SMART_NINJA_KILL_POINTS = 25;
-var BOSS_KILL_POINTS = 100;
+var BOSS_KILL_POINTS = 10;
 
 var KUNAI_TYPE = 1;
 var DEATH_BLADE_TYPE = 2;
@@ -85,24 +86,23 @@ var ramenHeight=27;
 var coinValue = 10;  
 var heartHealth = 25;
 var scrollChakra = 25;
-var playerLives = 1;
+var playerLives = 3;
 //record the time when first holding down the attack button. Used to see if held long enough for a death Blade 
 var timeHeld = 0;
 var chargeSfx = 1; //will hold the charge sfx object to remove after key up on charging 
 
 // Global animation holder
+var currentGame;
 var playerAnimation = new Array();
 var enemies = new Array(3); // There are three kind of enemies in the game
 var missile = new Array();
 var item = new Array(); //For special items and health and coins etc
 var sfx = new Array(); //Special Effects like HitAnimation and Damage Animation 
-var bossMode = false;
-var gameOver = false;
+
 var playerHit = false;
 var grace = false;
 var prevHealth = -1;
 var prevChakra = -1;   
-var initialScore = 0;
 
 var onePlayerMode = false;
 var team;
@@ -263,13 +263,18 @@ function selectModeMouseClickListener(){
 }	  
 	  
 function updateScore(score){
-$(".score").text((getScore() + score).toString());
-$(".score").animate({fontSize: '50px'},"slow");
-$(".score").animate({fontSize: '25px'},"slow");
+  currentGame.updateScore(score);
+  $(".score").text(getScore().toString());
+  $(".score").animate({fontSize: '50px'},"slow");
+  $(".score").animate({fontSize: '25px'},"slow");
 }
 
 function getScore() {
-  return parseInt($(".score").text());
+  if (currentGame != null) {
+    return currentGame.getScore();
+  } else {
+    return -1; 
+  }
 }
 
 function animateLevel(newLevel) {
@@ -392,11 +397,11 @@ function removeSfx(node){
 function animateChargeSfx(){
 	var i = 0;
 	setInterval(function(){
-	if(chargeSfx != 1){
-			chargeSfx.setAnimation(i);
-			i =(i+1)%2;
-	}
-},REFRESH_RATE-5);	
+  	if(chargeSfx != 1){
+  			chargeSfx.setAnimation(i);
+  			i =(i+1)%2;
+  	}
+  }, REFRESH_RATE-5);	
 
 }
 	
@@ -441,29 +446,28 @@ if(mode == ATTACK){
 
 function updateEnemies(){
   $(".enemy").each(function(){
-              this.enemy.update($("#player"));
-              var posx = parseInt($(this).x());
-              if((posx + enemyWidth) < 0){
-               $(this).remove();
-                return;
-              }
-              //Test for collisions
-			  if(!grace){
-				  var collided = $(this).collision("#playerBody, #player");
-			  
-              if(collided.length > 0){
+        this.enemy.update($("#player"));
+        var posx = parseInt($(this).x());
+        if((posx + enemyWidth) < 0){
+         $(this).remove();
+          return;
+        }
+        //Test for collisions
+			  if(grace){ 
+          return; 
+        }
+				var collided = $(this).collision("#playerBody, #player");
+        if (collided.length <= 0) { 
+          return; 
+        }
+
 				if(this.enemy.damage($("#player")[0].player.shield)){
 					var addScore = 0;
 					if(this.enemy instanceof BossNinja){
-            let bossEnemy = this.enemy;
-						$(this).setAnimation(enemies[2]["damage"], animateEnemy(this.enemy.node,DEATH));
-						$(this).setAnimation(enemies[2]["explode"], 
-              function(node){
-                //console says undefined enemy
-                console.log("boss defeated");
-                bossEnemy.onDestroy();
-                $(node).remove();
-              });
+            let boss = this;
+						$(this).setAnimation(enemies[2]["damage"], animateEnemy(boss.enemy.node, DEATH));  
+            console.log("boss defeated by player collision");
+            boss.enemy.onDestroy();
 						$(this).w(enemyWidth);
 						addScore = BOSS_KILL_POINTS;
 						
@@ -499,8 +503,8 @@ function updateEnemies(){
 					addSfx(sfx["sfx2"],$("#player").x(),$("#player").y(),20,-35, 70, 42);
 					animateHealthBar();}
 				
-				}
-				}
+				
+				
               
             });
 			}
@@ -518,45 +522,47 @@ function updateMissiles(){
         
         //Test for player missile collisions ITS BUGGY AS FUCK 
         var collided = $(this).collision("#actors,.enemy");
-        if(collided.length > 0){
-            //An enemy has been hit!
-			if(this.playerMissiles.type == DEATH_BLADE_TYPE){
+        if(collided.length <= 0){ 
+          return; //missed
+        }
+        //An enemy has been hit!
+			if (this.playerMissiles.type == DEATH_BLADE_TYPE) {
 				this.playerMissiles.update();
 				$(this).setAnimation(missile["playerexplode"], function(node){$(node).remove();});
-			}
-            else{
+			} else {
 				$(this).setAnimation(missile["enemiesexplode"], function(node){$(node).remove();}); 
 			}
 			var damageAmount = this.playerMissiles.damage;	 
 			$(this).removeClass("playerMissiles"); 
             collided.each(function(){
             if(this.enemy.damage(damageAmount)){
-				if(this.enemy instanceof BossNinja){
+				if (this.enemy instanceof BossNinja) {
+          let boss = this;
 					updateScore(BOSS_KILL_POINTS);
 					var x = $(this).x();
 					var y = $(this).y();
 					$(this).setAnimation(enemies[2]["explode"], 
             function(node){
-              this.enemy.onDestroy();
-              $(node).remove();
+              console.log("player missile killed boss");
+              boss.enemy.onDestroy();
             });
 					$(this).w(enemyWidth);
 					// reward with 1up icon
-						addLifeItem(x,y);
+					addLifeItem(x,y);
 				} 
 				else if(this.enemy instanceof SmartNinja) {
 					updateScore(SMART_NINJA_KILL_POINTS);
-					$(this).setAnimation(enemies[1]["explode"], function(node){$(node).remove();});
+					$(this).setAnimation(enemies[1]["explode"], node => this.enemy.onDestroy());
 					$(this).w(enemyWidth);
 				} 
 				else {
 					updateScore(NINJA_KILL_POINTS);
-					$(this).setAnimation(enemies[0]["explode"], function(node){$(node).remove();});
+					$(this).setAnimation(enemies[0]["explode"], node => this.enemy.onDestroy());
 					$(this).w(enemyWidth);
 				}
 				$(this).removeClass("enemy");
 			}
-			else{
+			else {
 				addSfx(sfx["sfx1"],$(this).x(),$(this).y(),20,-35,55, 41);
 				if(this.enemy instanceof BossNinja){
 					$(this).setAnimation(enemies[2]["damage"]);
@@ -577,7 +583,6 @@ function updateMissiles(){
           });
 		 
 		  
-        }
 	
 	});
 	
@@ -928,8 +933,7 @@ function updateMissiles(){
 					break;
 			}
         });
-		
-		
+
 	function Team(){
 		this.playerOrderArray = new Array();
 		
@@ -1072,15 +1076,17 @@ function updateMissiles(){
 			};
 		}
 	
-		function Enemy(node) {
-		this.collisionDamage = ninjaCollisionDamage;
-		this.shield = ninjaShieldHealth;
-		this.speedx = -5;
-		this.speedy = 0;
-		this.node = $(node);
+		class Enemy {
+      constructor(node) {
+        this.collisionDamage = ninjaCollisionDamage;
+        this.shield = ninjaShieldHealth;
+        this.speedx = -5;
+        this.speedy = 0;
+        this.node = $(node); 
+      }
 		
 		//deals damage to enemy 
-			this.damage = function(damageAmount){
+			damage(damageAmount) {
 				this.shield -= damageAmount; 
 				if(this.shield <= 0){
 					return true;
@@ -1089,108 +1095,112 @@ function updateMissiles(){
 			}
 			
 			
-			this.update = function(playerNode){
+			update(playerNode) {
 				this.updateX(playerNode);
 				this.updateY(playerNode);
-                if(( (Math.random() >= 0.99) || this.collisionDamage >= smartNinjaCollisionDamage) && (Math.random() >= 0.95)){
+        if (Math.random() >= 0.95 && this.collisionDamage >= smartNinjaCollisionDamage) {
 					addEnemyMissile(this.node);
 					animateEnemy(this.node, ATTACK);
-                }
+        }
               
 			};
 		
-			this.updateY = function(playerNode){
+			updateY(playerNode) {
 				var newpos = parseInt(this.node.y()) + this.speedy;
 				this.node.y(newpos);
 				};
-			this.updateX = function(playerNode){
+			
+      updateX(playerNode) {
 				var newpos = parseInt(this.node.x()) + this.speedx;
 				this.node.x(newpos);
 			};
-      this.onDestroy = function() {
+      
+      onDestroy() {
         this.node.remove();
       }
 			
 		};
 		
 		//enemy type 1
-		function Ninja(node) {
-			this.collisionDamage = ninjaCollisionDamage;
-			this.node = $(node);
-		}
-	
-		Ninja.prototype = new Enemy();
-		Ninja.prototype.updateY = function(playerNode) {
-			var pos = parseInt(this.node.y());
-			if(pos > (PLAYGROUND_HEIGHT - 50)){
-				this.node.y((pos - 2));
-			}
-		
+		class Ninja extends Enemy {
+        constructor(node) {
+          super(node);
+		      this.collisionDamage = ninjaCollisionDamage;
+        }
+
+        updateY(playerNode) {
+          var pos = parseInt(this.node.y());
+          if (pos > (PLAYGROUND_HEIGHT - 50)) {
+            this.node.y((pos - 2));
+          }
+        }
 		}
 		
 		//enemy type 2
-		function SmartNinja(node){
-			this.collisionDamage = smartNinjaCollisionDamage;
-			this.node   = $(node);
-			this.shield = smartNinjaShieldHealth;
-			this.speedy = 2;
-			this.speedx = -10;
-			this.alignmentOffset = 2;
-			this.playerYPrevPos = 0;
+		class SmartNinja extends Enemy {
+      constructor(node) {
+        super(node);
+        this.collisionDamage = smartNinjaCollisionDamage;
+        this.shield = smartNinjaShieldHealth;
+        this.speedy = 2;
+        this.speedx = -10;
+        this.alignmentOffset = 2;
+        this.playerYPrevPos = 0;
+      }
+
+      updateX(playerNode) {
+        var newpos = parseInt(this.node.x()) + this.speedx;
+        this.node.x(newpos);
+      }
+
+      updateY(playerNode) {
+        if ((this.node.y() != $(playerNode)[0].gameQuery.posy)) {
+         if ((this.node[0].gameQuery.posy+this.alignmentOffset) > $(playerNode)[0].gameQuery.posy) {
+            var newpos = parseInt(this.node.y())-this.speedy;
+            this.node.y(newpos);
+          } 
+          else if ((this.node[0].gameQuery.posy+this.alignmentOffset) < $(playerNode)[0].gameQuery.posy) {
+            var newpos = parseInt(this.node.y())+this.speedy;
+            this.node.y(newpos);
+          }
         }
-		
-		
-        SmartNinja.prototype = new Enemy();
-		SmartNinja.prototype.updateX = function(playerNode){
-			var newpos = parseInt(this.node.x()) + this.speedx;
-			this.node.x(newpos);
-			}
-        SmartNinja.prototype.updateY = function(playerNode){
-			if((this.node.y() != $(playerNode)[0].gameQuery.posy)){
-				if((this.node[0].gameQuery.posy+this.alignmentOffset) > $(playerNode)[0].gameQuery.posy){
-					var newpos = parseInt(this.node.y())-this.speedy;
-					this.node.y(newpos);
-				} 
-				else if((this.node[0].gameQuery.posy+this.alignmentOffset) < $(playerNode)[0].gameQuery.posy){
-					var newpos = parseInt(this.node.y())+this.speedy;
-					this.node.y(newpos);
-				}
-			}
-			this.playerYPrevPos = $(playerNode)[0].gameQuery.posy;
-        }
+        this.playerYPrevPos = $(playerNode)[0].gameQuery.posy;
+      }
+    }
 		
 		//enemy type 3
 		//should include a chance of invincibility when tobi becomes see through 
-		function BossNinja(node, onDestroy){
-			this.collisionDamage = bossNinjaCollisionDamage;
-			this.node   = $(node);
-			this.shield = bossNinjaShieldHealth;
-			this.speedx = -1;
-			this.alignmentOffset = 2;
-			this.moveForward = true;
-      this.onDestroy = onDestroy;
-        }
-        BossNinja.prototype = new SmartNinja();
-        BossNinja.prototype.updateX = function(){
-			var pos = parseInt(this.node.x());
-			if(this.moveForward & pos > (PLAYGROUND_WIDTH - 300)){
-				this.node.x((pos+this.speedx));
-			}
-			else{
-				this.moveForward = false;
-				if(pos < PLAYGROUND_WIDTH - 50){
-					this.node.x(parseInt(this.node.x()) - this.speedx);
-			   }
-			   else{
-					this.moveForward = true;}
-			}
-        }
-        BossNinja.prototype.onDestroy = function() {
-          Enemy.prototype.onDestroy.apply();
-          this.onDestroy();
-        }
+		class BossNinja extends SmartNinja {
+      constructor (node, onDestroy) {
+        super(node);
+        this.collisionDamage = bossNinjaCollisionDamage;
+        this.shield = bossNinjaShieldHealth;
+        this.speedx = -1;
+        this.alignmentOffset = 2;
+        this.moveForward = true;
+        this.onBossDestroy = onDestroy;
+      }
 
+      updateX(playerNode) {
+        var pos = parseInt(this.node.x());
+        if(this.moveForward & pos > (PLAYGROUND_WIDTH - 300)){
+          this.node.x((pos+this.speedx));
+        }
+        else{
+          this.moveForward = false;
+          if (pos < PLAYGROUND_WIDTH - 50) {
+            this.node.x(parseInt(this.node.x()) - this.speedx);
+          } else{
+            this.moveForward = true;
+          }
+        }
+      }
 
+      onDestroy() {
+        super.onDestroy();
+        this.onBossDestroy();
+      }
+    }
     // Initialize the game:
 		
 		function addHealthBar() {
@@ -1269,17 +1279,17 @@ function updateMissiles(){
 		
 		
 		function initializeGame(){
-		initializePlayground();
-		initializeBackground();
-		initializeCallbacks();
-		addHealthBar();
-		addChakraBar();
-		addScoreText();
-		addLevelText(1);
-		addAvatar();
-		setPlayerClass();
-		startMusic();
-		
+      currentGame = new model.game();
+  		initializePlayground();
+  		initializeBackground();
+  		initializeCallbacks();
+  		addHealthBar();
+  		addChakraBar();
+  		addScoreText();
+  		addLevelText(1);
+  		addAvatar();
+  		setPlayerClass();
+  		startMusic();
 		}  
 			animateBoxes();
 			selectModeMouseClickListener();
@@ -1360,7 +1370,7 @@ function updateMissiles(){
 	
 	//This function manage the creation of the enemies and items
   $.playground().registerCallback(function(){
-    if (gameOver || bossMode) {
+    if (currentGame.isGameOver() || currentGame.isBossMode()) {
       return;
     }
 
@@ -1404,7 +1414,7 @@ function updateMissiles(){
     }
 
 		else if(rand >= 0.95){
-      bossMode = true;
+      currentGame.setBossMode(true);
       const bossName = "enemy1_"+Math.ceil(Math.random()*1000);
       $("#actors").addSprite(bossName, {animation: enemies[2]["idle"],
           posx: PLAYGROUND_WIDTH-80, posy: Math.random()*PLAYGROUND_HEIGHT,
@@ -1412,7 +1422,7 @@ function updateMissiles(){
       $("#"+bossName).addClass("enemy");
       $("#"+bossName)[0].enemy = new BossNinja($("#"+bossName), 
                                               () => {console.log("bossMode ended"); 
-                                                      bossMode = false;});
+                                                      currentGame.setBossMode(false);});
     }
     
           
@@ -1421,7 +1431,7 @@ function updateMissiles(){
 		
 	//This callback contains most of the enemy logic	
 		$.playground().registerCallback(function(){
-      if (gameOver) {
+      if (currentGame.isGameOver()) {
         return; 
       }
 			updateItems();
@@ -1433,67 +1443,68 @@ function updateMissiles(){
 				
 		// this is the function that control most of the game logic 
           $.playground().registerCallback(function(){
-          if(!gameOver){
-            //Update the movement of the Naruto:
-            if(!playerHit){
-              $("#player")[0].player.update();
-              if(jQuery.gameQuery.keyTracker[65]){ //this is left! (a)
-                var nextpos = parseInt($("#player").x())-PLAYER_SPEED;
-                if(nextpos > 0){
-                  $("#player").x(nextpos);
-				
-                }
-              }
-              if(jQuery.gameQuery.keyTracker[68]){ //this is right! (d)
-                var nextpos = parseInt($("#player").x())+PLAYER_SPEED;
-                if(nextpos < PLAYGROUND_WIDTH - playerWidth){
-                  $("#player").x(nextpos);
-				
-                }
-              }
-              if(jQuery.gameQuery.keyTracker[87]){ //this is up! (w)
-                var nextpos = parseInt($("#player").y())-PLAYER_SPEED;
-                if(nextpos > 0){
-                  $("#player").y(nextpos);
-				
-                }
-              }
-              if(jQuery.gameQuery.keyTracker[83]){ //this is down! (s)
-                var nextpos = parseInt($("#player").y())+PLAYER_SPEED;
-                if(nextpos < PLAYGROUND_HEIGHT -playerHeight){
-                  $("#player").y(nextpos);
-         
-								}
-              }
-
-} else {
-              var posy = parseInt($("#player").y())+PLAYER_SPEED;
-              var posx = parseInt($("#player").x())-PLAYER_SPEED;
-              if(posy > PLAYGROUND_HEIGHT){
-                //Does the player did get out of the screen?
-                if ($("#player")[0].player.respawn()) {
-                  gameOver = true;
-                  let rootContainer = "#playground";
-                  $(rootContainer).append('<div style="position: absolute; ... >');
-                  $("#actors,#playerMissileLayer,#enemiesMissileLayer, #meter, #avatar, .score, .items, .level").fadeTo(1000,0);
-                  $("#background").fadeTo(5000,0, () => $(rootContainer).clearAll(true));
-                  
-                  gameOverDialog.show(rootContainer, getScore(), shareToFacebook, restartgame);
-                } else {
-                  $("#explosion").remove();
-                  $("#player").children().show();
-                  $("#player").y(PLAYGROUND_HEIGHT / 2);
-                  $("#player").x(PLAYGROUND_WIDTH / 3);
-				          resetBarsAndAvatar();
-                  playerHit = false;
-                }
+          if (currentGame.isGameOver()) { 
+            return;
+          }
+          //Update the movement of the Naruto:
+          if(playerHit){
+            var posy = parseInt($("#player").y())+PLAYER_SPEED;
+            var posx = parseInt($("#player").x())-PLAYER_SPEED;
+            if(posy > PLAYGROUND_HEIGHT){
+              //Does the player did get out of the screen?
+              if ($("#player")[0].player.respawn()) {
+                currentGame.setGameOver(true);
+                let rootContainer = "#playground";
+                $(rootContainer).append('<div style="position: absolute; ... >');
+                $("#actors,#playerMissileLayer,#enemiesMissileLayer, #meter, #avatar, .score, .items, .level").fadeTo(1000,0);
+                $("#background").fadeTo(5000,0, () => $(rootContainer).clearAll(true));
+                
+                gameOverDialog.show(rootContainer, getScore(), shareToFacebook, restartgame);
               } else {
-                $("#player").y(posy);
-                $("#player").x(posx);
+                $("#explosion").remove();
+                $("#player").children().show();
+                $("#player").y(PLAYGROUND_HEIGHT / 2);
+                $("#player").x(PLAYGROUND_WIDTH / 3);
+                resetBarsAndAvatar();
+                playerHit = false;
+              }
+            } else {
+              $("#player").y(posy);
+              $("#player").x(posx);
+            }
+          } else {
+            $("#player")[0].player.update();
+            if(jQuery.gameQuery.keyTracker[65]){ //this is left! (a)
+              var nextpos = parseInt($("#player").x())-PLAYER_SPEED;
+              if(nextpos > 0){
+                $("#player").x(nextpos);
+      
+              }
+            }
+            if(jQuery.gameQuery.keyTracker[68]){ //this is right! (d)
+              var nextpos = parseInt($("#player").x())+PLAYER_SPEED;
+              if(nextpos < PLAYGROUND_WIDTH - playerWidth){
+                $("#player").x(nextpos);
+      
+              }
+            }
+            if(jQuery.gameQuery.keyTracker[87]){ //this is up! (w)
+              var nextpos = parseInt($("#player").y())-PLAYER_SPEED;
+              if(nextpos > 0){
+                $("#player").y(nextpos);
+      
+              }
+            }
+            if(jQuery.gameQuery.keyTracker[83]){ //this is down! (s)
+              var nextpos = parseInt($("#player").y())+PLAYER_SPEED;
+              if(nextpos < PLAYGROUND_HEIGHT -playerHeight){
+                $("#player").y(nextpos);
+       
               }
             }
           }
-        }, REFRESH_RATE);		
+        
+      }, REFRESH_RATE);		
 		
 		}
 });

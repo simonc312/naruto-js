@@ -15,7 +15,7 @@ function createDialog(score,
                     "<h4>Game Over</h4>" +
                     "Your final score was" + 
                     "<h3>" + score + "</h3>" + 
-                    "Rank " + " Genin" + "<br>" +
+                    "Rank " + getRank(score) + "<br>" +
                   "</div>");
   dialog.append(rightButton);
   dialog.append(leftButton);
@@ -32,6 +32,18 @@ function showDialog(rootContainer,
                                     rightButtonHandler, "Retry");
   $(rootContainer).prepend(gameOverDialog);
   gameOverDialog.fadeIn();
+}
+
+function getRank(score) {
+  const base = 10;
+  let ranks = ['Dropout','Genin','Chounin','Jounin','Sanin','Kage'];
+  let exp = 1;
+  let index = 0; 
+  while(score > Math.pow(base, exp) && exp < ranks.length) {
+    exp++;
+    index++;
+  }
+  return ranks[index];
 }
 
 module.exports = {
