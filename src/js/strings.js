@@ -1,3 +1,8 @@
+const paths = {
+  base : "/naruto-js",
+  sprite : "/naruto-js/assets/sprites/"
+}
+
 const button = {
   id : "#startbutton",
   chooseMode : "Choose mode",
@@ -19,6 +24,7 @@ const mode = {
 }
 
 module.exports = {
+  paths : paths,
   button : button,
   mode : mode
 }

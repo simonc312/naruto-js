@@ -2,14 +2,14 @@
 let strings = require("./strings.js");
 let gameOverDialog = require("./gameover.js");
 let model = require("./model.js");
-
+let styleModels = require("./styleModels.js");
 // Global constants:
 var PLAYGROUND_WIDTH    = 1000;
 var PLAYGROUND_HEIGHT    = 500;
 var REFRESH_RATE        = 30;
 var PLAYGROUND_CALLBACK_RATE = 1000; //milliseconds
-var BASE_PATH = "/naruto-js";
-var SPRITE_PATH = BASE_PATH + "/assets/sprites/";
+var BASE_PATH = strings.paths.base;
+var SPRITE_PATH = strings.paths.sprite;
 
 //Constants for the gameplay
 var stageSpeed = 3;
@@ -109,8 +109,8 @@ var team;
 var team2;
 var avatarIdArray = new Array();
 var gameReady = false;
-var LEFT = ".left";
-var RIGHT = ".right";
+var LEFT = styleModels.leftSide.styleClass;
+var RIGHT = styleModels.rightSide.styleClass;
 var side = LEFT;
 // --------------------------------------------------------------------
 // --                      the main declaration:                     --
@@ -181,33 +181,6 @@ function addAvatarSelectionClickListener(node){
 		});
 	}
 }
-
-function hideSide(side){
-if(side == ".left"){
-	shiftSide(side);
-	$(side).each(function(){
-		if(!$(this).hasClass('fillspace'))
-			$(this).fadeOut("slow");
-	});
-}
-else{
-	$(side).each(function(){
-		$(this).fadeOut("slow");
-		});
-	shiftSide(side);
-}
-}
-
-function shiftSide(side){
-if(side == ".left"){
-	$("div#boxes.fillspace.clear")[0].style.display = "none";
-	$("div#boxes.fillspace").addClass("clear");
-	$("#welcomeScreen").animate({paddingLeft: "20%"},"slow");
-	}
-	else{
-	$("#welcomeScreen").animate({paddingLeft: "20%"},"slow");
-	}
-}
 	  
 function enableSingleSelection(){
 $(strings.mode.onePlayer.id).fadeOut("slow");
@@ -215,34 +188,50 @@ $(strings.mode.twoPlayers.id).fadeOut("slow");
 $(strings.button.id).text(strings.button.chooseTeam);
 $(".choose").each(function(){
 	$(this).css('cursor','pointer');
-	$(this).addClass('shadow');
-	$(this).click(function(){
+	$(this).addClass(styleModels.side.styleClasses);
+	$(this).click(function() {
 		$(strings.button.id).text(strings.button.chooseOrder);
 		team = new Team();
-		if($(this).hasClass('left')){
-			hideSide(RIGHT);
-			$(".choose"+RIGHT).css('cursor','default');
-			$(side).each(function(){
-				$(this).addClass('shadow');
-				$(this).addClass('red');
-				addAvatarSelectionClickListener($(this));
-			});
+		if($(this).hasClass('left')) {
+      onSideSelected(styleModels.leftSide, 
+                     styleModels.rightSide);
+		} else {
+			onSideSelected(styleModels.rightSide, 
+                     styleModels.leftSide);
 		}
-		else{
-			side = RIGHT;
-			hideSide(LEFT);
-			$(".choose"+LEFT).css('cursor','default');
-			$(side).each(function(){
-				$(this).addClass('shadow');
-				$(this).addClass('blue');
-				addAvatarSelectionClickListener($(this));
-			});
-		}
-		$(".choose").each(function(){$(this).unbind('click');});
-			
+    $(".choose").each(function(){$(this).unbind('click');});
 		});
 });
+}
+
+function onSideSelected(selectedSide, otherSide) {
+  hideSide(otherSide.styleClass);
+  $(".choose" + otherSide.styleClass).css('cursor','default');
+
+  side = selectedSide.styleClass;
+  $(side).each( function() {
+    $(this).addClass(selectedSide.selectedStyleClasses);
+    addAvatarSelectionClickListener($(this));
+  });
 }	
+
+function hideSide(side) {  
+  shiftSide(side);
+  $(side).animate({"opacity": 0 }, "slow");
+}
+
+function shiftSide(side) {
+  let properties;
+  if (side == LEFT) {
+    properties = {
+      "paddingRight" : "20%", 
+      "margin-left" : "-20%"
+    };
+  } else {
+    properties = {"paddingLeft": "20%"};
+  }
+  $("#welcomeScreen").animate(properties,"slow");
+}
 
 function enableVersusSelection(){}	  
 	  
@@ -1255,9 +1244,11 @@ function updateMissiles(){
 		
 		
 		function animateBoxes(){
-			$("#welcomeScreen > #boxes").each(function(){
-				$(this).css({'animation': 'fadeIn 2s ease 1s 1', '-webkit-animation': 'fadeIn 2s ease 1s 1'});
+			$("#welcomeScreen > #boxes").each(function() {
+				// todo hide boxes 
+        //$(this).css({'animation': 'fadeIn 2s ease 1s 1', '-webkit-animation': 'fadeIn 2s ease 1s 1'});
 			});  
+      $("#welcomeScreen").removeAttr("hidden");
 		}		
 			$("#playground").playground({height: PLAYGROUND_HEIGHT, width: PLAYGROUND_WIDTH, keyTracker: true})
 		function initializePlayground(){	$.playground()
@@ -1278,7 +1269,7 @@ function updateMissiles(){
 		}
 		
 		
-		function initializeGame(){
+		function initializeGame() {
       currentGame = new model.game();
   		initializePlayground();
   		initializeBackground();
@@ -1291,8 +1282,9 @@ function updateMissiles(){
   		setPlayerClass();
   		startMusic();
 		}  
-			animateBoxes();
-			selectModeMouseClickListener();
+
+		animateBoxes();
+		selectModeMouseClickListener();
 		  
     // Initialize the background
     

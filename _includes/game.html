@@ -1,5 +1,5 @@
 <div id="playground">
-    <div id="welcomeScreen">
+    <div id="welcomeScreen" hidden>
       {% for song in site.data.music %}
 		    <audio id="{{ song.id }}"> <source src="{{ site.baseurl }}/assets/music/{{ song.title }}" type="{{ song.type }}"/> </audio>
       {% endfor %}
